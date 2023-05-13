@@ -8,7 +8,7 @@
     unused_assignments,
     non_snake_case
 )]
-
+#![windows_subsystem = "windows"]
 use fltk::app::handle;
 use fltk::button::Button;
 use fltk::enums::{Cursor, Event, LabelType};
