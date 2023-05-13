@@ -66,6 +66,8 @@ struct MainTheme {
     botBtnColor: Color,
     /** 底部三个按钮的图标颜色*/
     botBtnIconColor: Color,
+    // null
+    not: Color,
 }
 
 fn main() {
@@ -294,17 +296,110 @@ fn set_mian_bot_btn(appMainWin: &mut window::DoubleWindow) {
     img_frame_setup.set_image(Some(setup_img));
     img_frame_setup.set_pos(42, 348);
     img_frame_setup.set_id("setup");
+
+    let mut setup: Button = Button::new(42, 325, 127, 45, "");
+    hide_btn_color(setup);
+    let mut about: Button = Button::new(42 + 150, 325, 127, 45, "");
+    hide_btn_color(about);
+    let mut quit: Button = Button::new(42 + 150 + 150, 325, 127, 45, "");
+    hide_btn_color(quit);
+}
+
+fn hide_btn_color(mut btn_frame: Button) {
+    btn_frame.set_color(Color::from_u32(0));
+    btn_frame.set_frame(FrameType::NoBox);
+    btn_frame.set_down_frame(FrameType::NoBox);
+    btn_frame.set_selection_color(Color::from_u32(0));
+    btn_frame.clear_visible_focus();
 }
 fn set_mian_state_btn(appMainWin: &mut window::DoubleWindow) {
+    let MainTheme: MainTheme = getMainTheme();
+
     let state_btn =
         image::PngImage::load("D:\\source\\rust\\hmPocketSecrets\\src\\img\\mian\\btn\\state.png")
             .expect("set main icon error");
     let mut img_frame_state = Frame::default().with_size(197, 0).center_of(appMainWin);
-    img_frame_state.set_color(Color::from_u32(0));
+    img_frame_state.set_color(MainTheme.not);
     img_frame_state.set_frame(FrameType::NoBox);
     img_frame_state.set_image(Some(state_btn));
     img_frame_state.set_pos(240, 190);
     img_frame_state.set_id("state");
+
+    // 钉钉机器人配置
+
+    let mut buf: text::TextBuffer = text::TextBuffer::default();
+    buf.append("远控：是");
+    buf.append("\n");
+    buf.append("类型：钉钉");
+    
+    let mut txt: text::TextEditor = text::TextEditor::default()
+        .with_size(70, 35)
+        .center_of_parent();
+    txt.set_buffer(buf);
+    txt.show_cursor(false);
+    txt.set_text_color(MainTheme.botBtnIconColor);
+    txt.set_text_size(11);
+    txt.set_label_type(LabelType::None);
+    txt.set_color(MainTheme.backgroundMain);
+    txt.clear_visible_focus();
+    txt.set_pos(250, 180);
+    txt.set_frame(FrameType::FlatBox);
+    txt.show_cursor(false);
+    // USB密匙预览
+
+    let mut buf2: text::TextBuffer = text::TextBuffer::default();
+    buf2.append("USB：3");
+    buf2.append("\n");
+    buf2.append("解锁：666");
+
+    let mut txt2: text::TextEditor = text::TextEditor::default()
+        .with_size(70, 35)
+        .center_of_parent();
+    txt2.set_buffer(buf2);
+    txt2.show_cursor(false);
+    txt2.set_text_color(MainTheme.botBtnIconColor);
+    txt2.set_text_size(11);
+    txt2.set_label_type(LabelType::None);
+    txt2.set_color(MainTheme.backgroundMain);
+    txt2.clear_visible_focus();
+    txt2.set_pos(250+113, 180);
+    txt2.set_frame(FrameType::FlatBox);
+    txt2.show_cursor(false);
+
+    let mut buf4: text::TextBuffer = text::TextBuffer::default();
+    buf4.append("密匙已连接");
+    
+    let mut txt4: text::TextEditor = text::TextEditor::default()
+        .with_size(70, 20)
+        .center_of_parent();
+    txt4.set_buffer(buf4);
+    txt4.show_cursor(false);
+    txt4.set_text_color(MainTheme.cardSuccessText);
+    txt4.set_text_size(11);
+    txt4.set_label_type(LabelType::None);
+    txt4.set_color(MainTheme.backgroundMain);
+    txt4.clear_visible_focus();
+    txt4.set_pos(250+113, 215);
+    txt4.set_frame(FrameType::FlatBox);
+    txt4.show_cursor(false);
+
+    let mut buf5: text::TextBuffer = text::TextBuffer::default();
+    buf5.append("机器人异常");
+    
+    let mut txt5: text::TextEditor = text::TextEditor::default()
+        .with_size(70, 20)
+        .center_of_parent();
+    txt5.set_buffer(buf5);
+    txt5.show_cursor(false);
+    txt5.set_text_color(MainTheme.cardFailureText);
+    txt5.set_text_size(11);
+    txt5.set_label_type(LabelType::None);
+    txt5.set_color(MainTheme.backgroundMain);
+    txt5.clear_visible_focus();
+    txt5.set_pos(250, 215);
+    txt5.set_frame(FrameType::FlatBox);
+    txt5.show_cursor(false);
+    
 }
 fn getMainTheme() -> MainTheme {
     let mut mainTheme: MainTheme = MainTheme {
@@ -328,6 +423,7 @@ fn getMainTheme() -> MainTheme {
         botBtnColor: Color::rgb_color(0, 0, 0),
         /** 底部三个按钮的图标颜色*/
         botBtnIconColor: Color::rgb_color(125, 125, 125),
+        not: Color::from_u32(0),
     };
     return mainTheme;
 }
