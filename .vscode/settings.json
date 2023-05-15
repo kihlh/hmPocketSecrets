@@ -1,5 +1,16 @@
 {
     "rust-analyzer.linkedProjects": [
         ".\\Cargo.toml"
-    ]
+    ],
+    "files.associations": {
+        "*.hm": "json",
+        "*.javascript": "javascript",
+        "iostream": "cpp",
+        "vector": "cpp",
+        "xstring": "cpp",
+        "fstream": "cpp",
+        "regex": "cpp",
+        "filesystem": "cpp",
+        "string": "cpp"
+    }
 }

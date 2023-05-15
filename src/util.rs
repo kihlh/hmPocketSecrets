@@ -20,8 +20,10 @@ use std::{
     process::{Command, Stdio},
     thread,
 };
-use winapi::um::winuser::{MessageBoxW, MB_ICONERROR, MB_OK, MB_OKCANCEL};
+use winapi::um::winuser::{MessageBoxW,ShowWindow, MB_ICONERROR, MB_OK, MB_OKCANCEL,SW_SHOW,SW_HIDE};
+use winapi::shared::windef::HWND;
 use winreg::{enums::*, RegKey};
+use std::mem::transmute;
 
 // use crate::{CONFIG, Config};
 
@@ -145,4 +147,9 @@ pub fn getArgs() -> Vec<String> {
         argv_list.push(value);
     });
     return argv_list;
+}
+
+pub fn showWindow (hwnd:i128 , hide:bool)->bool{
+    unsafe { ShowWindow(hwnd as HWND,SW_HIDE); }
+    return true;
 }

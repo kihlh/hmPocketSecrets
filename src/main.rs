@@ -8,20 +8,23 @@
     unused_assignments,
     non_snake_case
 )]
-#![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"]
 use fltk::app::handle;
 use fltk::button::Button;
 use fltk::enums::{Cursor, Event, LabelType};
 use fltk::frame::Frame;
 use fltk::input::{InputType, IntInput};
+use fltk::text::TextDisplay;
 use fltk::{enums::Color, enums::FrameType};
 use fltk::{prelude::*, window::Window, *};
 use fltk_theme::{SchemeType, WidgetScheme};
 use magic_crypt::MagicCryptTrait;
 use msgbox::IconType;
 use serde_json::json;
+use winapi::shared::minwindef::LPARAM;
 use std::collections::hash_map::DefaultHasher;
 use std::ffi::OsStr;
+use std::mem::transmute;
 use std::os::windows::ffi::OsStrExt;
 use std::ptr::null_mut;
 use std::str::FromStr;
@@ -35,15 +38,20 @@ use std::{
     process::{Command, Stdio},
     thread,
 };
-use winapi::um::winuser::{MessageBoxW, MB_OKCANCEL};
+// use tray_icon::{icon::Icon, menu::Menu, TrayIconBuilder};
+use winapi::um::winuser::{MessageBoxW, MB_OKCANCEL,SendMessageA,LoadImageA,IMAGE_ICON,LR_LOADFROMFILE,DestroyIcon, WM_SETICON, ICON_SMALL, ICON_BIG};
 use winreg::{enums::*, RegKey};
+use winapi::shared::windef::{HICON,HWND};
+use std::ffi::CString;
+use std::os::raw::c_char;
+extern crate libloading;
 
 mod util;
 use util::*;
 
 const CONFIGKEY: &str = "G3Lt2Tb7NTnY0Up5mMmmMrhnNDnk718liVbPEN4LMMMrjOCaOGtaHsZaZfuRyqUE";
 const CONFIGPATH: &str = "config.hmcg";
-const HWND: &i64 = &0;
+static MAIN_HWND: Mutex<i128> = Mutex::new(0);
 
 struct MainTheme {
     /**主背景颜色 */
@@ -83,22 +91,59 @@ fn mianWindow() {
 
     let appMain = app::App::default();
     let mut appMainWin = Window::new(2400, 100, 500, 390, "HM神秘口袋");
-    // 允许调整窗口大小
-    appMainWin.make_resizable(true);
-
-    // setWinNotFrame(&mut appMainWin);
-    let mut background_frame = setWinBackground_image(&mut appMainWin);
-    setWinIcon(&mut appMainWin);
-    setinteractiveFunctionMainButton(&mut appMainWin);
-    set_mian_bot_btn(&mut appMainWin);
+    setWinBackground_image(&mut appMainWin);
     set_mian_top_title(&mut appMainWin);
-    set_mian_state_btn(&mut appMainWin);
+    app::set_selection_color(0,0,0);
+
+    // 主界面的窗口 2  悬浮在主窗口1上面
+    let mut appRootView = window::Window::new(0, 0, 500, 390, "mian");
+    setWinBackground_forRoot_image(&mut appRootView);
+    setinteractiveFunctionMainButton(&mut appRootView);
+    set_mian_bot_btn(&mut appRootView);
+    set_mian_top_title(&mut appRootView);
+    set_mian_state_btn(&mut appRootView);
+    appRootView.end();
+    appRootView.show();
+    setWinIcon(&mut appMainWin);
     appMainWin.end();
+    // AddTray();
     appMainWin.show();
     appMainWin.visible_focus(true);
+    setMianHWND(&mut appMainWin);
+    AddTray();
+    startThreadPockeLib();
     appMain.run().unwrap();
 }
 
+fn startThreadPockeLib() {
+    thread::spawn(move || {
+        
+    });
+    
+}
+
+fn AddTray() {
+    thread::spawn(move || {
+       
+    });
+    
+}
+
+fn setMianHWND(appMainWin: &mut window::DoubleWindow) {
+    let hwnd = appMainWin.raw_handle() as i128;
+    let mut _HWND: std::sync::MutexGuard<i128> = MAIN_HWND.lock().unwrap();
+    *_HWND = hwnd;
+    // print!("{}", _HWND);
+    drop(_HWND);
+}
+
+fn getHWND ()->i128{
+    let mut hwnd_co:i128 =0;
+    let mut _HWND: std::sync::MutexGuard<i128> = MAIN_HWND.lock().unwrap();
+    hwnd_co = *_HWND;
+    drop(_HWND);
+    return hwnd_co; 
+}
 // 设置一个无边框可拖拽的窗口
 fn setWinNotFrame(appMainWin: &mut window::DoubleWindow) {
     appMainWin.set_border(false);
@@ -125,7 +170,17 @@ fn setWinNotFrame(appMainWin: &mut window::DoubleWindow) {
 // 设置背景为图片
 fn setWinBackground_image(appMainWin: &mut window::DoubleWindow) -> Frame {
     let background_image =
-        image::PngImage::load("D:\\source\\rust\\hmPocketSecrets\\src\\img\\mian\\background.png")
+        image::PngImage::from_data(include_bytes!("./img/mian/background.png"))
+            .expect("set main icon error");
+    let mut frame = Frame::default().with_size(500, 390).center_of(appMainWin);
+    frame.set_frame(FrameType::EngravedBox);
+    frame.set_image(Some(background_image));
+    return frame;
+}
+
+fn setWinBackground_forRoot_image(appMainWin: &mut window::DoubleWindow) -> Frame {
+    let background_image =
+        image::PngImage::from_data(include_bytes!("./img/mian/backgroundRoot.png"))
             .expect("set main icon error");
     let mut frame = Frame::default().with_size(500, 390).center_of(appMainWin);
     frame.set_frame(FrameType::EngravedBox);
@@ -134,10 +189,14 @@ fn setWinBackground_image(appMainWin: &mut window::DoubleWindow) -> Frame {
 }
 
 fn setWinIcon(appMainWin: &mut window::DoubleWindow) {
+    // let icon_data = include_bytes!("./icon/ICON1.ico");
     //  设置窗口图标
-    let ICON1 = image::IcoImage::load("D:\\source\\rust\\hmPocketSecrets\\src\\icon\\ICON1.ico")
-        .expect("set main icon error");
-    appMainWin.set_icon(Some(ICON1.clone()));
+    // let ICON1 = image::IcoImage::load("D:\\source\\rust\\hmPocketSecrets\\src\\icon\\ICON1.ico")
+    // let ICON1 = image::IcoImage::from_data(include_bytes!("D:\\source\\rust\\hmPocketSecrets\\src\\icon\\ICON1.ico"))
+    //   let ICON1 = image::IcoImage::from_data(icon_data)
+        // .expect("set main icon error");
+    // appMainWin.set_icon(Some(ICON1.clone()));
+    // 直接c++ 那边设置 单独一个图标放文件不合适  也没办法编译进二进制
 }
 
 fn setinteractiveFunctionMainButton(appMainWin: &mut window::DoubleWindow) {
@@ -147,13 +206,13 @@ fn setinteractiveFunctionMainButton(appMainWin: &mut window::DoubleWindow) {
     let is_off: i32 = 2;
 
     let background_image_open =
-        image::PngImage::load("D:\\source\\rust\\hmPocketSecrets\\src\\img\\mian\\open.png")
+        image::PngImage::from_data(include_bytes!("./img/mian/open.png"))
             .expect("set main icon error");
     let background_image_stop =
-        image::PngImage::load("D:\\source\\rust\\hmPocketSecrets\\src\\img\\mian\\stop.png")
+        image::PngImage::from_data(include_bytes!("./img/mian/stop.png"))
             .expect("set main icon error");
     let background_image_off =
-        image::PngImage::load("D:\\source\\rust\\hmPocketSecrets\\src\\img\\mian\\off.png")
+        image::PngImage::from_data(include_bytes!("./img/mian/off.png"))
             .expect("set main icon error");
 
     // 服务正在启用中的按钮
@@ -228,14 +287,18 @@ fn setinteractiveFunctionMainButton(appMainWin: &mut window::DoubleWindow) {
     });
 }
 
-fn hide_mian_window() {}
+fn hide_mian_window() {
+    let mut hwnd: std::sync::MutexGuard<i128> = MAIN_HWND.lock().unwrap();
+    showWindow(*hwnd, true);
+    drop(hwnd);
+}
 
 fn set_mian_top_title(appMainWin: &mut window::DoubleWindow) {
     let MainTheme: MainTheme = getMainTheme();
 
     // 标题栏
     let mut buf: text::TextBuffer = text::TextBuffer::default();
-    buf.set_text("HM神秘口袋 (免费开源程序)");
+    buf.set_text("HM神秘口袋 (开源免费程序)");
     let mut txt: text::TextEditor = text::TextEditor::default()
         .with_size(350, 20)
         .center_of_parent();
@@ -256,21 +319,21 @@ fn set_mian_top_title(appMainWin: &mut window::DoubleWindow) {
     btn_frame.set_down_frame(FrameType::NoBox);
     btn_frame.set_selection_color(Color::from_u32(0));
     btn_frame.clear_visible_focus();
-    // btn_frame.set_callback(move |btn_frame: &mut Button| {
-    //     hide_mian_window();
-    // });
+    btn_frame.set_callback(move |btn_frame: &mut Button| {
+        hide_mian_window();
+    });
     // return btn_frame;
 }
 
 fn set_mian_bot_btn(appMainWin: &mut window::DoubleWindow) {
     let about_img =
-        image::PngImage::load("D:\\source\\rust\\hmPocketSecrets\\src\\img\\mian\\btn\\about.png")
+        image::PngImage::from_data(include_bytes!("./img/mian/btn/about.png"))
             .expect("set main icon error");
     let quit_img =
-        image::PngImage::load("D:\\source\\rust\\hmPocketSecrets\\src\\img\\mian\\btn\\quit.png")
+        image::PngImage::from_data(include_bytes!("./img/mian/btn/quit.png"))
             .expect("set main icon error");
     let setup_img =
-        image::PngImage::load("D:\\source\\rust\\hmPocketSecrets\\src\\img\\mian\\btn\\setup.png")
+        image::PngImage::from_data(include_bytes!("./img/mian/btn/setup.png"))
             .expect("set main icon error");
 
     // 关于
@@ -298,11 +361,14 @@ fn set_mian_bot_btn(appMainWin: &mut window::DoubleWindow) {
     img_frame_setup.set_id("setup");
 
     let mut setup: Button = Button::new(42, 325, 127, 45, "");
-    hide_btn_color(setup);
+    hide_btn_color(setup.clone());
     let mut about: Button = Button::new(42 + 150, 325, 127, 45, "");
-    hide_btn_color(about);
+    hide_btn_color(about.clone());
     let mut quit: Button = Button::new(42 + 150 + 150, 325, 127, 45, "");
-    hide_btn_color(quit);
+    hide_btn_color(quit.clone());
+    quit.set_callback(|_|{
+        process::exit(0);
+    });
 }
 
 fn hide_btn_color(mut btn_frame: Button) {
@@ -315,8 +381,9 @@ fn hide_btn_color(mut btn_frame: Button) {
 fn set_mian_state_btn(appMainWin: &mut window::DoubleWindow) {
     let MainTheme: MainTheme = getMainTheme();
 
+    let state_btn_data = include_bytes!("./img/mian/btn/state.png");
     let state_btn =
-        image::PngImage::load("D:\\source\\rust\\hmPocketSecrets\\src\\img\\mian\\btn\\state.png")
+        image::PngImage::from_data(state_btn_data)
             .expect("set main icon error");
     let mut img_frame_state = Frame::default().with_size(197, 0).center_of(appMainWin);
     img_frame_state.set_color(MainTheme.not);
@@ -327,79 +394,83 @@ fn set_mian_state_btn(appMainWin: &mut window::DoubleWindow) {
 
     // 钉钉机器人配置
 
-    let mut buf: text::TextBuffer = text::TextBuffer::default();
-    buf.append("远控：是");
-    buf.append("\n");
-    buf.append("类型：钉钉");
-    
-    let mut txt: text::TextEditor = text::TextEditor::default()
+    let mut remoteSupportStatusTextSimpleMessageBuff: text::TextBuffer = text::TextBuffer::default();
+    remoteSupportStatusTextSimpleMessageBuff.append("远控：是");
+    remoteSupportStatusTextSimpleMessageBuff.append("\n");
+    remoteSupportStatusTextSimpleMessageBuff.append("类型：钉钉");
+
+    let mut remoteSupportStatusTextSimpleMessage: text::TextEditor = text::TextEditor::default()
         .with_size(70, 35)
         .center_of_parent();
-    txt.set_buffer(buf);
-    txt.show_cursor(false);
-    txt.set_text_color(MainTheme.botBtnIconColor);
-    txt.set_text_size(11);
-    txt.set_label_type(LabelType::None);
-    txt.set_color(MainTheme.backgroundMain);
-    txt.clear_visible_focus();
-    txt.set_pos(250, 180);
-    txt.set_frame(FrameType::FlatBox);
-    txt.show_cursor(false);
+    remoteSupportStatusTextSimpleMessage.set_buffer(remoteSupportStatusTextSimpleMessageBuff);
+    remoteSupportStatusTextSimpleMessage.show_cursor(false);
+    remoteSupportStatusTextSimpleMessage.set_text_color(MainTheme.botBtnIconColor);
+    remoteSupportStatusTextSimpleMessage.set_text_size(11);
+    remoteSupportStatusTextSimpleMessage.set_label_type(LabelType::None);
+    remoteSupportStatusTextSimpleMessage.set_color(MainTheme.backgroundMain);
+    remoteSupportStatusTextSimpleMessage.clear_visible_focus();
+    remoteSupportStatusTextSimpleMessage.set_pos(250, 180);
+    remoteSupportStatusTextSimpleMessage.set_frame(FrameType::FlatBox);
+    remoteSupportStatusTextSimpleMessage.show_cursor(false);
+    remoteSupportStatusTextSimpleMessage.set_id("remoteSupportStatusTextSimpleMessage");
     // USB密匙预览
 
-    let mut buf2: text::TextBuffer = text::TextBuffer::default();
-    buf2.append("USB：3");
-    buf2.append("\n");
-    buf2.append("解锁：666");
+    let mut usbStatusTextSimpleMessageBuff: text::TextBuffer = text::TextBuffer::default();
+    usbStatusTextSimpleMessageBuff.append("USB：3");
+    usbStatusTextSimpleMessageBuff.append("\n");
+    usbStatusTextSimpleMessageBuff.append("解锁：666");
 
-    let mut txt2: text::TextEditor = text::TextEditor::default()
+    let mut usbStatusTextSimpleMessage: text::TextEditor = text::TextEditor::default()
         .with_size(70, 35)
         .center_of_parent();
-    txt2.set_buffer(buf2);
-    txt2.show_cursor(false);
-    txt2.set_text_color(MainTheme.botBtnIconColor);
-    txt2.set_text_size(11);
-    txt2.set_label_type(LabelType::None);
-    txt2.set_color(MainTheme.backgroundMain);
-    txt2.clear_visible_focus();
-    txt2.set_pos(250+113, 180);
-    txt2.set_frame(FrameType::FlatBox);
-    txt2.show_cursor(false);
+    usbStatusTextSimpleMessage.set_buffer(usbStatusTextSimpleMessageBuff);
+    usbStatusTextSimpleMessage.show_cursor(false);
+    usbStatusTextSimpleMessage.set_text_color(MainTheme.botBtnIconColor);
+    usbStatusTextSimpleMessage.set_text_size(11);
+    usbStatusTextSimpleMessage.set_label_type(LabelType::None);
+    usbStatusTextSimpleMessage.set_color(MainTheme.backgroundMain);
+    usbStatusTextSimpleMessage.clear_visible_focus();
+    usbStatusTextSimpleMessage.set_pos(250 + 113, 180);
+    usbStatusTextSimpleMessage.set_frame(FrameType::FlatBox);
+    usbStatusTextSimpleMessage.show_cursor(false);
+    usbStatusTextSimpleMessage.set_id("usbStatusTextSimpleMessage");
 
     let mut buf4: text::TextBuffer = text::TextBuffer::default();
     buf4.append("密匙已连接");
     
-    let mut txt4: text::TextEditor = text::TextEditor::default()
+    let mut keyStateText: text::TextEditor = text::TextEditor::default()
         .with_size(70, 20)
         .center_of_parent();
-    txt4.set_buffer(buf4);
-    txt4.show_cursor(false);
-    txt4.set_text_color(MainTheme.cardSuccessText);
-    txt4.set_text_size(11);
-    txt4.set_label_type(LabelType::None);
-    txt4.set_color(MainTheme.backgroundMain);
-    txt4.clear_visible_focus();
-    txt4.set_pos(250+113, 215);
-    txt4.set_frame(FrameType::FlatBox);
-    txt4.show_cursor(false);
+    keyStateText.set_buffer(buf4);
+    keyStateText.show_cursor(false);
+    keyStateText.set_text_color(MainTheme.cardSuccessText);
+    keyStateText.set_text_size(11);
+    keyStateText.set_label_type(LabelType::None);
+    keyStateText.set_color(MainTheme.backgroundMain);
+    keyStateText.clear_visible_focus();
+    keyStateText.set_pos(250 + 113, 215);
+    keyStateText.set_frame(FrameType::FlatBox);
+    keyStateText.show_cursor(false);
+    keyStateText.set_id("keyStateText");
 
-    let mut buf5: text::TextBuffer = text::TextBuffer::default();
-    buf5.append("机器人异常");
+    let mut robotStateTextBuff: text::TextBuffer = text::TextBuffer::default();
+    robotStateTextBuff.append("机器人异常");
     
-    let mut txt5: text::TextEditor = text::TextEditor::default()
+    let mut robotStateText: text::TextDisplay = text::TextDisplay::default()
         .with_size(70, 20)
         .center_of_parent();
-    txt5.set_buffer(buf5);
-    txt5.show_cursor(false);
-    txt5.set_text_color(MainTheme.cardFailureText);
-    txt5.set_text_size(11);
-    txt5.set_label_type(LabelType::None);
-    txt5.set_color(MainTheme.backgroundMain);
-    txt5.clear_visible_focus();
-    txt5.set_pos(250, 215);
-    txt5.set_frame(FrameType::FlatBox);
-    txt5.show_cursor(false);
-    
+    robotStateText.set_buffer(robotStateTextBuff);
+    robotStateText.show_cursor(false);
+    robotStateText.set_text_color(MainTheme.cardFailureText);
+    robotStateText.set_text_size(11);
+    robotStateText.set_label_type(LabelType::None);
+    robotStateText.set_color(MainTheme.backgroundMain);
+    robotStateText.clear_visible_focus();
+    robotStateText.set_pos(250, 215);
+    robotStateText.set_frame(FrameType::NoBox);
+    robotStateText.show_cursor(false);
+    robotStateText.set_id("robotStateText");
+
 }
 fn getMainTheme() -> MainTheme {
     let mut mainTheme: MainTheme = MainTheme {
