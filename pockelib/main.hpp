@@ -44,18 +44,22 @@ using namespace std;
 
 
 
-typedef struct EnvInfo
-{
-    string exePath;
-    string cwdPath;
-    string parentPath;
-    DWORD pid;
-    vector<string> args;
-};
 
+
+/*
+
+vector<string> getArgv(int argc, char* char_argv[]);
 EnvInfo getEnvInfo(int argc, char *char_argv[]);
 string getProcessidFilePath(int ProcessID);
 BOOL EnableShutDownPriv();
 bool killProcessID(DWORD ProcessID);
 BOOL isSystemFor64bit();
 BOOL ReSetWindows(DWORD dwReason, BOOL aims);
+vector<AllWeChatWindowItme> getAllWeChatWindow();
+HWND GetSystemTrayHwnd();
+BOOL lockSystemInteraction(bool lockb );
+int GetSystemMetricsLen();
+vector<RECT> GetDeviceCapsAll();
+RECT GetCurrentMonitorRect();
+
+*/

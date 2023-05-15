@@ -11,6 +11,7 @@
         "fstream": "cpp",
         "regex": "cpp",
         "filesystem": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "ostream": "cpp"
     }
 }

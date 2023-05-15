@@ -26,7 +26,7 @@
  - VS code 
 ### 举个栗子
 
-![](https://cos.kiic.top//202305150358496.png?imageMogr2/quality/90/format/webp)
+![](https://cos.kiic.top//202305150406963.png?imageMogr2/quality/90/format/webp)
 ##### 2.不隐射 但是将窗口透明度变低 例如30%  在1.5米范围后很难发现此窗口
 - 自由设置透明度
 -  鼠标移开窗口自动变成0透明度（完全不可见）
