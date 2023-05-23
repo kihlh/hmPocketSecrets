@@ -1,7 +1,7 @@
 ### 
 ### hm神秘口袋
 
-<img src ="https://cos.kiic.top//202305140512647.webp?imageMogr2/quality/90/format/webp" style="zoom:50%;" ></img>![image-20230513210848900](https://cos.kiic.top//202305140512835.webp?imageMogr2/quality/90/format/webp)
+<img src="https://cos.kiic.top//202305210932792.png?imageMogr2/quality/90/format/webp" alt="500px" style="zoom:25%;" />![image-20230513210848900](https://cos.kiic.top//202305140512835.webp?imageMogr2/quality/90/format/webp)
 
 
 -----------
@@ -58,14 +58,31 @@
 ---------------------
 
 #### 程序界面畅想
-当前界面一览（编写完成 已编译）
-![](https://cos.kiic.top//202305150359991.png?imageMogr2/quality/90/format/webp)
+
+查看原型：https://js.design/f/L9jghw?p=y57X5S-meg
+
+<img src="https://cos.kiic.top//202305220514227.png?imageMogr2/quality/90/format/webp" alt="image-20230522051406961" style="zoom:50%;" />
 
 画大饼的原型一览
 ![](https://cos.kiic.top//202305150400513.png?imageMogr2/quality/90/format/webp)
 
 ![image-20230514051559726](https://cos.kiic.top//202305140515799.png?imageMogr2/quality/90/format/webp)
 ------------------
+
+#### 版权声明/君子协议：
+
+| 名称                                                         | 授权/协议                                                    | 备注                        |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | --------------------------- |
+| hm神秘口袋                                                   | MIT                                                          | 主要程序 不包含特殊模块     |
+| 数据加密密匙                                                 | 不授权/ 只提供 只读的解密dll (用户密码只提供布尔值(哈希输入)) | 保证数据结构安全性          |
+| hm神秘口袋 图标 <img src="https://cos.kiic.top//202305210936835.png?imageMogr2/quality/90/format/webp" alt="50px" style="zoom:33%;" /> | 禁止用于其他可执行文件                                       | 防止伪装或者商业性活动      |
+| 微信嵌入钉钉  (内部工具)                                     | 不开源/禁止: 联网,存储数据,主动运行                          | 保证用户数据安全性/防止他用 |
+| 微信嵌入资源管理器  (内部工具)                               | 不开源/禁止: 联网,存储数据,主动运行                          | 保证用户数据安全性/防止他用 |
+|                                                              |                                                              |                             |
+
+
+
+
 
 #### 编程语言：
 
@@ -75,22 +92,22 @@ Rust ，C++ ， HTML
 
 - Rust
 
-  |     库名称     |                           授权协议                           |           用途            |
-  | :------------: | :----------------------------------------------------------: | :-----------------------: |
-  |   hm神秘口袋   |                             MIT                              | 如果引用了GPL将可能会变更 |
-  |    **fltk**    |        [MIT](https://choosealicense.com/licenses/mit)        |           界面            |
-  |    fl2rust     |        [MIT](https://choosealicense.com/licenses/mit)        |         fltk辅助          |
-  |   **regex**    | [MIT ](https://choosealicense.com/licenses/mit)OR [Apache-2.0](https://choosealicense.com/licenses/apache-2.0) |           界面            |
-  | **serde_json** | [MIT ](https://choosealicense.com/licenses/mit)OR [Apache-2.0](https://choosealicense.com/licenses/apache-2.0) |         数据处理          |
-  |     winres     |        [MIT](https://choosealicense.com/licenses/mit)        |     程序提权(管理员)      |
-  |     winapi     | [MIT ](https://choosealicense.com/licenses/mit)OR [Apache-2.0](https://choosealicense.com/licenses/apache-2.0) |        系统API调用        |
-  |   clipboard    | [MIT ](https://choosealicense.com/licenses/mit)OR [Apache-2.0](https://choosealicense.com/licenses/apache-2.0) |          剪贴板           |
-  |  magic-crypt   | [Apache-2.0](https://choosealicense.com/licenses/apache-2.0) |  用户配置内容加密 AES256  |
-  |   heroicons    | [ MIT license](https://github.com/tailwindlabs/heroicons/blob/master/LICENSE) |           图标            |
-  |                |                                                              |                           |
-  |                |                                                              |                           |
-  |                |                                                              |                           |
-  |                |                                                              |                           |
+  |     库名称     |                           授权协议                           |          用途           |
+  | :------------: | :----------------------------------------------------------: | :---------------------: |
+  |    **fltk**    |        [MIT](https://choosealicense.com/licenses/mit)        |          界面           |
+  |    fl2rust     |        [MIT](https://choosealicense.com/licenses/mit)        |        fltk辅助         |
+  |   **regex**    | [MIT ](https://choosealicense.com/licenses/mit)OR [Apache-2.0](https://choosealicense.com/licenses/apache-2.0) |          界面           |
+  | **serde_json** | [MIT ](https://choosealicense.com/licenses/mit)OR [Apache-2.0](https://choosealicense.com/licenses/apache-2.0) |        数据处理         |
+  |     winres     |        [MIT](https://choosealicense.com/licenses/mit)        |    程序提权(管理员)     |
+  |     winapi     | [MIT ](https://choosealicense.com/licenses/mit)OR [Apache-2.0](https://choosealicense.com/licenses/apache-2.0) |       系统API调用       |
+  |   clipboard    | [MIT ](https://choosealicense.com/licenses/mit)OR [Apache-2.0](https://choosealicense.com/licenses/apache-2.0) |         剪贴板          |
+  |  magic-crypt   | [Apache-2.0](https://choosealicense.com/licenses/apache-2.0) | 用户配置内容加密 AES256 |
+  |   heroicons    | [ MIT license](https://github.com/tailwindlabs/heroicons/blob/master/LICENSE) |          图标           |
+  |                |                                                              |                         |
+  |                |                                                              |                         |
+  |                |                                                              |                         |
+  |                |                                                              |                         |
+  |                |                                                              |                         |
   
   
 

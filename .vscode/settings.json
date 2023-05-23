@@ -12,6 +12,9 @@
         "regex": "cpp",
         "filesystem": "cpp",
         "string": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "codecvt": "cpp",
+        "xlocale": "cpp",
+        "system_error": "cpp"
     }
 }

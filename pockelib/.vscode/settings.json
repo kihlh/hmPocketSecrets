@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.hm": "json",
+        "*.javascript": "javascript",
+        "xstring": "cpp"
+    }
+}

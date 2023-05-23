@@ -1,0 +1,152 @@
+[
+    {
+        "name": "主界面",
+        "className": "WeChatMainWndForPC",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "单聊窗口",
+        "className": "ChatWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "文件管理",
+        "className": "FileListMgrWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "小程序选择",
+        "className": "AppletPanelWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "笔记",
+        "className": "FavNoteWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "通讯录管理",
+        "className": "ContactManagerWindow",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "any",
+        "className": "Chrome_RenderWidgetHostHWND",
+        "baseName": "WeChatAppEx.exe",
+        "fuzzy": true
+    },
+    {
+        "name": "any",
+        "className": "Chrome_WidgetWin_0",
+        "baseName": "WeChatAppEx.exe",
+        "fuzzy": true
+    },
+    {
+        "name": "设置",
+        "className": "SettingWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "备份窗口",
+        "className": "BackupRestoreEntryWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "朋友圈",
+        "className": "SnsWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "公众号",
+        "className": "H5SubscriptionProfileWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "收藏预览",
+        "className": "FavRecordWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "图片查看",
+        "className": "ImagePreviewWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "登录界面",
+        "className": "WeChatLoginWndForPC",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "分享",
+        "className": "SelectContactWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "托盘消息",
+        "className": "TrayNotifyWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "简约名片",
+        "className": "NewContactProfileWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "文件传输助手选择",
+        "className": "HandoffMenuWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "选择联系人",
+        "className": "AddMemberWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "聊天文件",
+        "className": "FileManagerWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "通话",
+        "className": "TalkRoomWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "通话邀请",
+        "className": "GroupVoipTrayWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "联系人侧边栏",
+        "className": "SessionChatRoomDetailWnd",
+        "baseName": "",
+        "fuzzy": false
+    },
+    {
+        "name": "修改群聊名称",
+        "className": "RoomInfoModifyDialog",
+        "baseName": "",
+        "fuzzy": false
+    }
+]
