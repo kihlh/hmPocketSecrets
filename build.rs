@@ -2,6 +2,7 @@ extern crate winres;
 #[cfg(windows)] use winres::WindowsResource;
 
 fn main() {
+    static_vcruntime::metabuild();
 
     let mut res = winres::WindowsResource::new();
     res.set_manifest(r#"

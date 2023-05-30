@@ -9,7 +9,6 @@
     non_snake_case
 )]
 
-// #![windows_subsystem = "windows"]
 use fltk::app::handle;
 use fltk::button::Button;
 use fltk::draw::font;
@@ -20,7 +19,6 @@ use fltk::input::{InputType, IntInput};
 use fltk::text::TextDisplay;
 use fltk::{enums::Color, enums::FrameType};
 use fltk::{prelude::*, window::Window, *};
-use fltk_theme::{SchemeType, WidgetScheme};
 use magic_crypt::MagicCryptTrait;
 use msgbox::IconType;
 use serde_json::json;
@@ -42,7 +40,6 @@ use std::{
 };
 use winapi::ctypes::c_void;
 use winapi::shared::minwindef::LPARAM;
-// use tray_icon::{icon::Icon, menu::Menu, TrayIconBuilder};
 use std::ffi::CString;
 use std::os::raw::c_char;
 use winapi::shared::windef::{HICON, HWND};
@@ -52,11 +49,8 @@ use winapi::um::winuser::{
 };
 use winreg::{enums::*, RegKey};
 
-use crate::util::{mb_Info, showWindow};
-extern crate libloading;
-
-// mod util;
-// use util::*;
+use crate::{initializeHandle, set_win_icon, open_tray_win, hasOpenWinTray, libNcPlus, util, DeviceTube,};
+use crate::util::{mb_Info, showWindow, mb_confirm};
 
 static MAIN_HWND: Mutex<i128> = Mutex::new(0);
 
@@ -84,19 +78,8 @@ struct MainTheme {
     // null
     not: Color,
 }
-#[link(name = "Dll3")]
-extern "C" {
-    fn initializeHandle(a: c_long) -> c_void;
-    fn set_win_icon(a: c_long) -> c_void;
-    fn lockSystemInteraction(a: bool) -> bool;
-    fn open_tray_win(a: c_long) -> c_void;
-    fn block_input(a: bool) -> bool;
 
-}
-
-// 主窗口开始
-pub fn mianWindow(show: bool) {
-    // "./img/Clip_20230513_211004.png"
+pub fn setMainTheme(){
     let mut mainTheme: MainTheme = getMainTheme();
     app::set_background_color(24, 24, 24);
     // app::set_fonts("name");
@@ -107,39 +90,46 @@ pub fn mianWindow(show: bool) {
     app::set_selection_color(17, 17, 17);
     app::set_frame_type(FrameType::NoBox);
     app::set_inactive_color(24, 24, 24);
+    app::set_frame_border_radius_max(0);
+    app::set_frame_type2(FrameType::BorderBox, FrameType::NoBox);
+    app::set_visible_focus(false);
+    app::set_frame_shadow_width(0);
+    app::swap_frame_type(FrameType::NoBox);
+    app::set_menu_linespacing(0);
+    app::set_scrollbar_size(0);
+    
+}
 
-    let appMain = app::App::default();
+// 主窗口开始
+pub fn mianWindow(show: bool) {
+    // "./img/Clip_20230513_211004.png"
+    let mut mainTheme: MainTheme = getMainTheme();
     let mut appMainWin = Window::new(0, 0, 600, 469, "HM神秘口袋");
-    setWinBackground_image(&mut appMainWin);
+    // setWinBackground_image(&mut appMainWin);
     set_mian_top_title(&mut appMainWin);
     app::set_selection_color(0, 0, 0);
     app::set_scheme(app::AppScheme::Base);
     // 主界面的窗口 2  悬浮在主窗口1上面
     let mut appRootView = window::Window::new(0, 0, 600, 469, "mian");
-
-    // let mut group = Group::new(0, 0, 400, 300, "");
-    // group.set_color(Color::from_u32(0));
-    // group.set_frame(FrameType::NoBox);
-    // group.set_down_frame(FrameType::NoBox);
-    // group.set_selection_color(FrameType::NoBox);
-
+    // appMainWin.set_border(false);
     setWinBackground_forRoot_image(&mut appRootView);
     setinteractiveFunctionMainButton(&mut appRootView);
     set_mian_bot_btn(&mut appRootView);
     set_mian_top_title(&mut appRootView);
     set_mian_state_btn(&mut appRootView);
     appRootView.end();
+    appMainWin.clone().center_screen(); // 将窗口居中
+
     appMainWin.show();
     appRootView.show();
     appMainWin.end();
-    // AddTray();
+    
+    setMianHWND(&mut appMainWin.clone());
 
-    // appMainWin.visible_focus(true);
-
-    setMianHWND(&mut appMainWin);
+    libNcPlus::sendInitializeHandle(getHWND().try_into().unwrap());
+    
     unsafe { initializeHandle(getHWND().try_into().unwrap()) };
-    setWinIcon(&mut appMainWin);
-
+    setWinIcon(&mut appMainWin.clone());
     AddTray();
 
     appMainWin.handle({
@@ -157,20 +147,27 @@ pub fn mianWindow(show: bool) {
 
                 true
             }
+            enums::Event::Drag => {
+                if(y<74){
+                    w.set_pos(app::event_x_root() - x, app::event_y_root() - y);
+                }
+                
+                true
+            }
             _ => false,
         }
     });
 
-    appMain.run().unwrap();
 }
 
 // 调用c++插件添加托盘
 fn AddTray() {
-    // thread::spawn(move || {
-    //     unsafe { open_tray() };
-    // });
+   
     // unsafe { open_tray() };
-    unsafe { open_tray_win(getHWND().try_into().unwrap()) };
+    if(!unsafe { hasOpenWinTray() }){
+        unsafe { open_tray_win(getHWND().try_into().unwrap()) };
+    }
+    // unsafe { open_tray_win(getHWND().try_into().unwrap()) };
 }
 
 // 设置窗口句柄到全局中方便调用
@@ -191,41 +188,18 @@ fn getHWND() -> i128 {
     return hwnd_co;
 }
 
-// 设置一个无边框可拖拽的窗口
-fn setWinNotFrame(appMainWin: &mut window::DoubleWindow) {
-    appMainWin.set_border(false);
-    // 窗体可以拖拽
-    appMainWin.handle({
-        let mut x = 0;
-        let mut y = 0;
-        move |w, ev| match ev {
-            enums::Event::Push => {
-                let coords = app::event_coords();
-                x = coords.0;
-                y = coords.1;
-                true
-            }
-            enums::Event::Drag => {
-                w.set_pos(app::event_x_root() - x, app::event_y_root() - y);
-                true
-            }
-            _ => false,
-        }
-    });
-}
 
 // 设置背景为图片(底窗)
-fn setWinBackground_image(appMainWin: &mut window::DoubleWindow) -> Frame {
-    let background_image = image::PngImage::load(
-        "D:\\source\\rust\\hmPocketSecrets\\src\\img\\mian\\Clip_20230522_165921.png",
-    )
-    // image::PngImage::from_data(include_bytes!("./img/mian/background.png"))
-    .expect("set main setWinBackground_image error");
-    let mut frame = Frame::default().with_size(600, 0).center_of(appMainWin);
-    frame.set_frame(FrameType::EngravedBox);
-    frame.set_image(Some(background_image));
-    return frame;
-}
+// fn setWinBackground_image(appMainWin: &mut window::DoubleWindow) -> Frame {
+//     let background_image = 
+//     // image::PngImage::load("D:\\source\\rust\\hmPocketSecrets\\src\\img\\mian\\Clip_20230522_165921.png",)
+//     image::PngImage::from_data(include_bytes!("./img/mian/background.png"))
+//     .expect("set main setWinBackground_image error");
+//     let mut frame = Frame::default().with_size(600, 0).center_of(appMainWin);
+//     frame.set_frame(FrameType::EngravedBox);
+//     frame.set_image(Some(background_image));
+//     return frame;
+// }
 
 // 设置背景为图片（主视图）
 fn setWinBackground_forRoot_image(appMainWin: &mut window::DoubleWindow) -> Frame {
@@ -274,7 +248,7 @@ fn setinteractiveFunctionMainButton(appMainWin: &mut window::DoubleWindow) {
     img_frame_open.set_color(Color::from_u32(0));
     img_frame_open.set_frame(FrameType::NoBox);
     img_frame_open.set_image(Some(background_image_open));
-    img_frame_open.set_pos(62, 142);
+    img_frame_open.set_pos(66, 142);
     img_frame_open.set_id("open");
     img_frame_open.hide();
 
@@ -283,7 +257,7 @@ fn setinteractiveFunctionMainButton(appMainWin: &mut window::DoubleWindow) {
     img_frame_off.set_color(Color::from_u32(0));
     img_frame_off.set_frame(FrameType::NoBox);
     img_frame_off.set_image(Some(background_image_off));
-    img_frame_off.set_pos(62, 142);
+    img_frame_off.set_pos(66, 142);
     img_frame_off.set_id("off");
     img_frame_off.hide();
 
@@ -292,21 +266,60 @@ fn setinteractiveFunctionMainButton(appMainWin: &mut window::DoubleWindow) {
     img_frame_stop.set_color(Color::from_u32(0));
     img_frame_stop.set_frame(FrameType::NoBox);
     img_frame_stop.set_image(Some(background_image_stop));
-    img_frame_stop.set_pos(62, 142);
+    img_frame_stop.set_pos(66, 142);
     img_frame_stop.set_id("stop");
     img_frame_stop.hide();
 
-    // 初始化按钮显示的类型
-    if is_show_btnType == is_open {
-        img_frame_open.show();
-    } else if is_show_btnType == is_off {
-        img_frame_off.show();
-    } else if is_show_btnType == is_stop {
-        img_frame_stop.show();
+   
+    
+    let mut vimg_frame_open = img_frame_open.clone();
+    let mut vimg_frame_stop = img_frame_stop.clone();
+    let mut vimg_frame_off = img_frame_off.clone();
+
+    if(libNcPlus::hasDisableDesktopLockKernel()){
+        is_show_btnType = is_off;
+    }else if (libNcPlus::hasEnableDesktopLock()) {
+        is_show_btnType = is_open;
+
+    }else{
+        is_show_btnType = is_stop;
     }
 
+    if(is_show_btnType==is_open){img_frame_open.show()};
+    if(is_show_btnType==is_off){img_frame_off.show()};
+    if(is_show_btnType==is_stop){img_frame_stop.show()};
+
+    thread::spawn(move || {
+        let mut is_show_btnType: i32 = 0;
+
+        loop {
+            util::Sleep(600);
+            // std::thread::sleep(std::time::Duration::from_millis(500));
+            if(libNcPlus::hasDisableDesktopLockKernel()){
+                is_show_btnType = is_off;
+            }else if (libNcPlus::hasEnableDesktopLock()) {
+                is_show_btnType = is_open;
+            }else{
+                is_show_btnType = is_stop;
+            }
+                   // 初始化按钮显示的类型
+            if is_show_btnType == is_open {
+                vimg_frame_open.show();
+                vimg_frame_off.hide();
+                vimg_frame_stop.hide();
+            } else if is_show_btnType == is_off {
+                vimg_frame_off.show();
+                vimg_frame_stop.hide();
+                vimg_frame_open.hide();
+            } else if is_show_btnType == is_stop {
+                vimg_frame_stop.show();
+                vimg_frame_open.hide();
+                vimg_frame_off.hide();
+            } 
+        }
+        });
     // 一个不可见的按钮 用来响应点击事件
-    let mut btn_frame = Button::new(62, 142, 184, 184, "");
+    let mut btn_frame = Button::new(66, 142, 184, 184, "");
     btn_frame.set_color(Color::from_u32(0));
     btn_frame.set_frame(FrameType::NoBox);
     btn_frame.set_down_frame(FrameType::NoBox);
@@ -339,8 +352,20 @@ fn setinteractiveFunctionMainButton(appMainWin: &mut window::DoubleWindow) {
         } else if is_show_btnType == is_stop {
             is_show_btnType = is_open;
         }
+        if is_show_btnType==is_off {
+            if(mb_confirm("当前程序已经禁用", "启用此功能将会启用程序的全局禁用,是否启用？")){
+                libNcPlus::setEnableDesktopLock(true);
+                libNcPlus::setDisableDesktopLockKernel(false);
+                is_show_btnType = is_open;
+            }
+        }
+        if is_show_btnType == is_open{
+            libNcPlus::setEnableDesktopLock(true);
+        }
+        if is_show_btnType == is_stop{
+            libNcPlus::setEnableDesktopLock(false);
+        }
     });
-    // btn_frame.s();
     btn_frame.show();
     btn_frame.top_window();
 }
@@ -451,11 +476,7 @@ fn hide_btn_color(mut btn_frame: Button) {
     btn_frame.set_color(Color::from_u32(0));
     btn_frame.set_frame(FrameType::NoBox);
     btn_frame.set_down_frame(FrameType::NoBox);
-    // btn_frame
-    // btn_frame.down_frame(FrameType::NoBox);
-    // btn_frame.set_down_frame(FrameType::NoBox);
     btn_frame.set_selection_color(Color::from_u32(0));
-    // btn_frame.set_;
     btn_frame.clear_visible_focus();
 }
 
@@ -626,7 +647,9 @@ fn set_mian_state_btn(appMainWin: &mut window::DoubleWindow) {
     hide_btn_color(setDeviceList.clone());
     setDeviceList.set_label_color(MainTheme.logo);  
     setDeviceList.set_label_size(12);
-    
+    setDeviceList.set_callback(|_|{
+        DeviceTube::DeviceTubeMain();
+    });
     // 设置应用列表
     let mut setAppList: Button = Button::new(485, 339, 50, 11, "设置内容");
     hide_btn_color(setAppList.clone());
@@ -643,21 +666,21 @@ fn set_mian_state_dynamic_infor(appMainWin: &mut window::DoubleWindow) {
 
     // 文本 今日已经护航次数
     let mut bftext_quen: text::TextBuffer = text::TextBuffer::default();
-    bftext_quen.append("00");
+    bftext_quen.append(format!("{}",libNcPlus::getLockFrequency()).as_str());
 
     let mut text_quen: text::TextEditor = text::TextEditor::default().center_of_parent();
     text_quen.set_buffer(bftext_quen);
     setTheStyleToInterface!(text_quen, /* x */ 450, /* y */ 120, /* w */ 34, /* h */ 40, 24);
     text_quen.set_label_color(MainTheme.cardText);
 
-    // 文本 今日已经护航次数
-    let mut bftext_processQuen: text::TextBuffer = text::TextBuffer::default();
-    bftext_processQuen.append("00");
+    // 文本 匹配的进程
+    let mut bftext_processQuenAsPsize: text::TextBuffer = text::TextBuffer::default();
+    bftext_processQuenAsPsize.append(format!("{}",libNcPlus::getProcessMatchSize()).as_str());
 
-    let mut text_processQuen: text::TextEditor = text::TextEditor::default().center_of_parent();
-    text_processQuen.set_buffer(bftext_processQuen);
+    let mut text_processQuenAsPsize: text::TextEditor = text::TextEditor::default().center_of_parent();
+    text_processQuenAsPsize.set_buffer(bftext_processQuenAsPsize);
     setTheStyleToInterface!(
-        text_processQuen,
+        text_processQuenAsPsize,
         /* x */ 450,
         /* y */ 290,
         /* w */ 34,
@@ -666,13 +689,13 @@ fn set_mian_state_dynamic_infor(appMainWin: &mut window::DoubleWindow) {
     );
 
        // 文本 N个设备匹配
-       let mut bftext_processQuen: text::TextBuffer = text::TextBuffer::default();
-       bftext_processQuen.append("0个设备匹配");
+       let mut bftext_processQuenAsDriver: text::TextBuffer = text::TextBuffer::default();
+       bftext_processQuenAsDriver.append(format!("{}个设备匹配",libNcPlus::getUnlockDriverNamesize()).as_str());
    
-       let mut text_processQuen: text::TextEditor = text::TextEditor::default().center_of_parent();
-       text_processQuen.set_buffer(bftext_processQuen);
+       let mut text_processQuenAsDriver: text::TextEditor = text::TextEditor::default().center_of_parent();
+       text_processQuenAsDriver.set_buffer(bftext_processQuenAsDriver);
        setTheStyleToInterface!(
-           text_processQuen,
+           text_processQuenAsDriver,
            /* x */ 342,
            /* y */ 219,
            /* w */ 90,
@@ -682,8 +705,8 @@ fn set_mian_state_dynamic_infor(appMainWin: &mut window::DoubleWindow) {
 
     // 文本 已设置 N 个应用
     let mut bftext_processQuen: text::TextBuffer = text::TextBuffer::default();
-    bftext_processQuen.append("已设置 0 个应用");
-
+    bftext_processQuen.append(format!("已设置 {} 个应用",libNcPlus::getProcessNameQuencySize()).as_str());
+  
     let mut text_processQuen: text::TextEditor = text::TextEditor::default().center_of_parent();
     text_processQuen.set_buffer(bftext_processQuen);
     setTheStyleToInterface!(
@@ -695,7 +718,7 @@ fn set_mian_state_dynamic_infor(appMainWin: &mut window::DoubleWindow) {
         11
     );
 
-    let mut has_Lock_state = false;
+    let mut has_Lock_state = libNcPlus::hasEnableDesktopLock();
 
     // 已经启用/ 已关闭
     let mut bftext_Lock_state: text::TextBuffer = text::TextBuffer::default();
@@ -720,7 +743,7 @@ fn set_mian_state_dynamic_infor(appMainWin: &mut window::DoubleWindow) {
 
     let mut text_Device_state: text::TextEditor = text::TextEditor::default().center_of_parent();
     
-    if(has_Lock_state){
+    if(libNcPlus::hasUnlockDriverSuccess()){
         bftext_KeyDevice_state.remove(0, bftext_KeyDevice_state.length());
         bftext_KeyDevice_state.append("可解锁设备已连接");
     }else{
@@ -732,23 +755,146 @@ fn set_mian_state_dynamic_infor(appMainWin: &mut window::DoubleWindow) {
     setTheStyleToInterface!(text_Device_state, /* x */ 453, /* y */ 175, /* w */ 115, /* h */ 25, 11);
     text_Device_state.set_label_color(MainTheme.cardText);
 
-    let pimg_lock_state_success_con: image::PngImage = image::PngImage::from_data(include_bytes!("./img/mian/state/off_state.png"))
+    let pimg_lock_state_failure_con: image::PngImage = image::PngImage::from_data(include_bytes!("./img/mian/state/off_state.png"))
         .expect("set main icon error");
-    let mut lock_state_success_con = Frame::default().with_size(21, 20).center_of(appMainWin);
-    lock_state_success_con.set_color(Color::from_u32(0));
-    lock_state_success_con.set_frame(FrameType::NoBox);
-    lock_state_success_con.set_image(Some(pimg_lock_state_success_con));
-    lock_state_success_con.set_pos(429, 174);
+
+    let  pimg_lock_state_success_con= image::PngImage::from_data(include_bytes!("./img/mian/state/launch.png"))
+        .expect("set main icon error");
+
+    // 右边是否链接驱动器开关
+    let mut lock_state_link_OK = Frame::default().with_size(21, 20).center_of(appMainWin);
+    lock_state_link_OK.set_color(Color::from_u32(0));
+    lock_state_link_OK.set_frame(FrameType::NoBox);
+    lock_state_link_OK.set_pos(429, 174);
+    lock_state_link_OK.set_image(Some(pimg_lock_state_success_con.clone()));
+    lock_state_link_OK.hide();
+
+    let mut lock_state_link_OFF = Frame::default().with_size(21, 20).center_of(appMainWin);
+    lock_state_link_OFF.set_color(Color::from_u32(0));
+    lock_state_link_OFF.set_frame(FrameType::NoBox);
+    lock_state_link_OFF.set_pos(429, 174);
+    lock_state_link_OFF.set_image(Some(pimg_lock_state_failure_con.clone()));
+    lock_state_link_OFF.hide();
+
+    if(libNcPlus::hasUnlockDriverSuccess()){
+        lock_state_link_OK.show();
+    }else{
+        lock_state_link_OFF.show();
+    }
 
 
-    let pimg_lock_state_failure_con = image::PngImage::from_data(include_bytes!("./img/mian/state/launch.png"))
-    .expect("set main icon error");
-    let mut lock_state_failure_con = Frame::default().with_size(21, 20).center_of(appMainWin);
-    lock_state_failure_con.set_color(Color::from_u32(0));
-    lock_state_failure_con.set_frame(FrameType::NoBox);
-    lock_state_failure_con.set_image(Some(pimg_lock_state_failure_con));
-    lock_state_failure_con.set_pos(325, 174);
+    // 左边  是否启用桌面锁定总开关
+    let mut lock_state_is_desktop_lock_OFF = Frame::default().with_size(21, 20).center_of(appMainWin);
+    lock_state_is_desktop_lock_OFF.set_color(Color::from_u32(0));
+    lock_state_is_desktop_lock_OFF.set_frame(FrameType::NoBox);
+    lock_state_is_desktop_lock_OFF.set_pos(325, 174);
+    lock_state_is_desktop_lock_OFF.set_image(Some(pimg_lock_state_failure_con.clone()));
+    lock_state_is_desktop_lock_OFF.hide();
 
+    let mut lock_state_is_desktop_lock_OK = Frame::default().with_size(21, 20).center_of(appMainWin);
+    lock_state_is_desktop_lock_OK.set_color(Color::from_u32(0));
+    lock_state_is_desktop_lock_OK.set_frame(FrameType::NoBox);
+    lock_state_is_desktop_lock_OK.set_pos(325, 174);
+    lock_state_is_desktop_lock_OK.set_image(Some(pimg_lock_state_success_con.clone()));
+    lock_state_is_desktop_lock_OK.hide();
+
+    if(has_Lock_state){
+       
+        lock_state_is_desktop_lock_OK.show();
+    }else{
+       
+        lock_state_is_desktop_lock_OFF.show();
+    }
+
+
+
+    // 启用线程 进行数据更新
+    thread::spawn(move || {
+        let mut oid_getUnlockDriverNameSize = 0;
+        let mut oid_has_Lock_state= libNcPlus::hasEnableDesktopLock();
+        let mut oid_processQuencyNameSize =libNcPlus::getProcessNameQuencySize();
+        let mut oid_lockoutsThatHaveRespondedSize = libNcPlus::getLockFrequency();
+        let mut oid_processQuencyProcessIdSize = libNcPlus::getProcessMatchSize();
+
+        loop {
+            util::Sleep(600);
+            let mut has_Lock_state = libNcPlus::hasEnableDesktopLock();
+            let mut unlockDriverNameSize =libNcPlus::getUnlockDriverNamesize();
+            let mut processQuencyNameSize =libNcPlus::getProcessNameQuencySize();
+            let mut lockoutsThatHaveRespondedSize = libNcPlus::getLockFrequency();
+            let mut processQuencyProcessIdSize = libNcPlus::getProcessMatchSize();
+
+            // 桌面锁打开状态
+            if(oid_has_Lock_state!=has_Lock_state){
+            if(has_Lock_state){
+                let mut buff: text::TextBuffer = text_Lock_state.buffer().unwrap();
+                buff.remove(0, buff.length());
+                buff.append("已启用");
+                // 图标
+                lock_state_is_desktop_lock_OK.show();
+                lock_state_is_desktop_lock_OFF.hide();
+            }else{
+                let mut buff: text::TextBuffer = text_Lock_state.buffer().unwrap();
+                buff.remove(0, buff.length());
+                buff.append("已关闭");
+                // 图标
+                lock_state_is_desktop_lock_OFF.show();
+                lock_state_is_desktop_lock_OK.hide();
+            }
+            oid_has_Lock_state=has_Lock_state
+            }
+
+            // 判断设置的应用名称列表是否有更新
+            if(oid_processQuencyNameSize!=processQuencyNameSize){
+            let mut bftext_processQuen =  text_processQuen.buffer().unwrap();
+             bftext_processQuen.remove(0, bftext_processQuen.length());
+                bftext_processQuen .append(format!("已设置 {} 个应用",processQuencyNameSize).as_str());
+                oid_processQuencyNameSize = processQuencyNameSize;
+            }
+       
+            if(lockoutsThatHaveRespondedSize!=oid_lockoutsThatHaveRespondedSize){
+                let mut buff =  text_quen.buffer().unwrap();
+                buff.remove(0, buff.length());
+                buff.append(format!("{}",lockoutsThatHaveRespondedSize).as_str());
+            }
+
+            if(processQuencyProcessIdSize!=oid_processQuencyProcessIdSize){
+                let mut buff =  text_processQuenAsPsize.buffer().unwrap();
+                buff.remove(0, buff.length());
+                buff.append(format!("{}",processQuencyProcessIdSize).as_str());
+            }
+
+
+            // 设备数量变动更新
+            if(oid_getUnlockDriverNameSize!=unlockDriverNameSize){
+               
+
+                // 更新设备匹配数量
+                let mut bftext_processQuenAsDriver = text_processQuenAsDriver.buffer().unwrap();
+                bftext_processQuenAsDriver.remove(0, bftext_processQuenAsDriver.length());
+                bftext_processQuenAsDriver.append(format!("{}个设备匹配",unlockDriverNameSize).as_str());
+
+                let mut bftext_KeyDevice_state= text_Device_state.buffer().unwrap();
+           
+                // 设备连接状态
+                if(unlockDriverNameSize!=0){
+                    bftext_KeyDevice_state.remove(0, bftext_KeyDevice_state.length());
+                    bftext_KeyDevice_state.append("可解锁设备已连接");
+                    // 图标
+                    lock_state_link_OK.show();
+                    lock_state_link_OFF.hide();
+                }else{
+                    bftext_KeyDevice_state.remove(0, bftext_KeyDevice_state.length());
+                    bftext_KeyDevice_state.append("可解锁设备已弹出");
+                    // 图标
+                    lock_state_link_OFF.show();
+                    lock_state_link_OK.hide();
+                }
+                oid_getUnlockDriverNameSize = unlockDriverNameSize;
+            }
+
+        }
+    });
 
 }
 
@@ -779,3 +925,4 @@ fn getMainTheme() -> MainTheme {
     };
     return mainTheme;
 }
+

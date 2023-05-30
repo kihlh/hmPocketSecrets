@@ -5,12 +5,13 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-fltk = { version = "1.4.3", features = ["fltk-bundled"] }
+fltk = { version = "1.4.4", features = ["fltk-bundled"] }
 serde_json = "1.0.96"
 # lazy_static = "1.4.0"
 regex = "1.7.3"
 clipboard = "0.5"
-fltk-theme = "0.7.0"
+# fltk-theme = "0.7.0"
+fltk-table = "*"
 winreg  = "0.50.0"
 msgbox = "0.7.0"
 magic-crypt = "3.1.12"
@@ -19,6 +20,7 @@ libloading = "*"
 tray-item = "0.8.0"
 cbindgen = "*"
 libc = "*"
+
 # rust-embed = "6.6.1"
 
 # tray-icon = "0.5.1"
@@ -26,5 +28,10 @@ libc = "*"
 [build-dependencies]
 fl2rust = "0.5.13"
 winres = "0.1.12"
+static_vcruntime = "2.0"
 winapi = "0.3.9"
 # windres = "*"
+
+
+[target.'cfg(all(windows, target_env = "msvc"))']
+rustflags = ["-C", "target-feature=+crt-static"]

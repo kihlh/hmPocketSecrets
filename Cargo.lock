@@ -441,9 +441,9 @@ dependencies = [
 
 [[package]]
 name = "fltk"
-version = "1.4.3"
+version = "1.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9aaf7cacace3db3d685f447f54b69fdc73c757fac0a00b5d965c4592e01de343"
+checksum = "b45b2b62bcda7954d1843e51b1f823d12449ec6832e7e4ade870769676ed0541"
 dependencies = [
  "bitflags 2.2.1",
  "crossbeam-channel",
@@ -454,21 +454,20 @@ dependencies = [
 
 [[package]]
 name = "fltk-sys"
-version = "1.4.3"
+version = "1.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4e06030256cc3edd00bfc01f5730a2ec08bf16086be01721d67980f753ac2db"
+checksum = "91941fe955506c9a4582018c68ecec7aad685731611ef7aa901e00d7a29cddd5"
 dependencies = [
  "cmake",
 ]
 
 [[package]]
-name = "fltk-theme"
-version = "0.7.0"
+name = "fltk-table"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "31a35af4e0ef3c362684219328cdb60459b3b916b9c9e57750b2c7ad6bd6b61f"
+checksum = "c86ecc369366f119c8ec301412df56b56c945145ddb406693b28d00ef429b286"
 dependencies = [
  "fltk",
- "lazy_static",
 ]
 
 [[package]]
@@ -788,13 +787,14 @@ dependencies = [
  "clipboard",
  "fl2rust",
  "fltk",
- "fltk-theme",
+ "fltk-table",
  "libc",
  "libloading",
  "magic-crypt",
  "msgbox",
  "regex",
  "serde_json",
+ "static_vcruntime",
  "tray-item",
  "winapi",
  "winreg",
@@ -836,12 +836,6 @@ name = "itoa"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "453ad9f582a441959e5f0d088b02ce04cfe8d51a8eaf077f12ac6d3e94164ca6"
-
-[[package]]
-name = "lazy_static"
-version = "1.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
@@ -1222,6 +1216,12 @@ name = "smallvec"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
+
+[[package]]
+name = "static_vcruntime"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "954e3e877803def9dc46075bf4060147c55cd70db97873077232eae0269dc89b"
 
 [[package]]
 name = "strsim"

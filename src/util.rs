@@ -1,7 +1,7 @@
 use fltk::input::{InputType, IntInput};
 use fltk::{enums::Color, enums::FrameType};
 use fltk::{prelude::*, *};
-use fltk_theme::{SchemeType, WidgetScheme};
+// use fltk_theme::{SchemeType, WidgetScheme};
 use magic_crypt::MagicCryptTrait;
 use msgbox::IconType;
 use serde_json::json;
@@ -152,4 +152,15 @@ pub fn getArgs() -> Vec<String> {
 pub fn showWindow (hwnd:i128 , hide:bool)->bool{
     unsafe { ShowWindow(hwnd as HWND,SW_HIDE); }
     return true;
+}
+
+
+macro_rules! Sleep {
+    ($b:expr) => {{
+        std::thread::sleep(std::time::Duration::from_millis($b));
+    }};
+}
+
+pub fn Sleep(ms:u64){
+    Sleep!(ms);
 }
